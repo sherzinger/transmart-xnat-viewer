@@ -22,8 +22,12 @@ import org.apache.http.message.BasicNameValuePair;
 public class XNATREST {
 
     static String jsessionid = "";
-    
+    private String user;
+    private String pass;
+
     public XNATREST(String domain, String username, String password){
+        this.user = username;
+        this.pass = password;
         login(domain, username, password);
     }
 
@@ -36,7 +40,7 @@ public class XNATREST {
             nameValuePairs.add(new BasicNameValuePair("j_password", password));
             nameValuePairs.add(new BasicNameValuePair("login", "Login"));
             nameValuePairs.add(new BasicNameValuePair("XNAT_CSRF", ""));
-            HttpResponse response = rest.doPost("https://" + domain + "/j_spring_security_check", nameValuePairs);
+            HttpResponse response = rest.doPost("https://" + domain + "/j_spring_security_check", nameValuePairs, this.user, this.pass);
             //Get Headers
             Header[] headers = response.getAllHeaders();
             for (Header header : headers) {
@@ -65,12 +69,12 @@ public class XNATREST {
     }
 
     public HttpResponse fetchData(String url) {
-        
+
 
         HttpResponse response = null;
 
         RESTRequest rest = new RESTRequest();
-        response = rest.doGet(url, jsessionid);
+        response = rest.doGet(url, jsessionid, this.user, this.pass);
 
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new RuntimeException("Failed : HTTP error code : "
@@ -79,6 +83,5 @@ public class XNATREST {
 
         return response;
     }
-
 
 }

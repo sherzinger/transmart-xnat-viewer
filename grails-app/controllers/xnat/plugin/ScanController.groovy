@@ -17,6 +17,12 @@ class ScanController {
             subject.xnat_project = SubjectService.getXnatProject(subject.tranSMART_subjectID);
 //            println(subject.xnat_subjectID);
 
+            Authenticator.setDefault (new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication (ScanService.getUsername(), ScanService.getPassword().toCharArray());
+                }
+            });
+
             String sessionString = "https://"+ ScanService.getDomain() + "/data/projects/" + subject.xnat_project + "/subjects/"+subject.xnat_subjectID+"/experiments?format=json";
             def sessionURL = sessionString.toURL().text;
             def sessionJSON = new JsonSlurper().parseText(sessionURL);
@@ -24,6 +30,9 @@ class ScanController {
             int numSessions = sessionJSON.ResultSet.totalRecords.toInteger();
 
             for (int i = 0; i < numSessions; i++) {
+                if (sessionJSON.ResultSet.Result[i].date == "") {
+                    continue;
+                }
                 Session s = new Session();
                 s.sessionID = sessionJSON.ResultSet.Result[i].ID;
 
